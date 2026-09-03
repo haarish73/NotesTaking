@@ -13,7 +13,13 @@ app.use(express.json());
 main().catch(err => console.log(err));
 
 async function main() {
+      if (!process.env.MONGODB_URI) {
+    console.log("❌ MONGODB_URI is missing");
+    process.exit(1);
+  }
+
   await mongoose.connect(process.env.MONGODB_URI);
+  console.log("mongodb connected");
 }
 // Routes
 app.use("/notes", require("./routes/notes"));
