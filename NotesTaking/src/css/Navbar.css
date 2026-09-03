@@ -1,0 +1,196 @@
+/* ==========================================================================
+   Design System & CSS Variables
+   ========================================================================== */
+:root {
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  --bg-navbar: #ffffff;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --border-color: #e2e8f0;
+  --primary-color: #4f46e5;
+  --primary-hover: #4338ca;
+  --danger-color: #ef4444;
+  --danger-hover: #dc2626;
+  --radius-md: 8px;
+  --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* ==========================================================================
+   Navbar Container
+   ========================================================================== */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--bg-navbar);
+  border-bottom: 1px solid var(--border-color);
+  padding: 14px 32px;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: var(--shadow-sm);
+}
+
+.nav-brand {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin: 0;
+  cursor: pointer;
+  user-select: none;
+  transition: var(--transition);
+}
+
+.nav-brand:hover {
+  color: var(--primary-color);
+}
+
+/* ==========================================================================
+   Desktop Navigation Links & Buttons
+   ========================================================================== */
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.user-profile-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-main);
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  transition: var(--transition);
+}
+
+.user-profile-link:hover {
+  background-color: #f1f5f9;
+  color: var(--primary-color);
+}
+
+/* Buttons */
+.nav-btn {
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  border: none;
+  transition: var(--transition);
+}
+
+.nav-btn-login {
+  background-color: transparent;
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+}
+
+.nav-btn-login:hover {
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.nav-btn-register {
+  background-color: var(--primary-color);
+  color: #ffffff;
+}
+
+.nav-btn-register:hover {
+  background-color: var(--primary-hover);
+}
+
+.nav-btn-logout {
+  background-color: #fee2e2;
+  color: var(--danger-color);
+}
+
+.nav-btn-logout:hover {
+  background-color: #fca5a5;
+  color: #991b1b;
+}
+
+/* ==========================================================================
+   Hamburger & Close Toggle Icon (Mobile Only)
+   ========================================================================== */
+.hamburger-toggle {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--text-main);
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+}
+
+/* Overlay background for Mobile Menu */
+.mobile-overlay {
+  display: none;
+}
+
+/* ==========================================================================
+   Media Queries (Responsive Drawer View)
+   ========================================================================== */
+@media (max-width: 768px) {
+  .navbar {
+    padding: 14px 20px;
+  }
+
+  /* Show toggle button on mobile */
+  .hamburger-toggle {
+    display: block;
+  }
+
+  /* Slide-down Drawer Panel */
+  .nav-right {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: var(--bg-navbar);
+    border-bottom: 1px solid var(--border-color);
+    flex-direction: column;
+    align-items: stretch;
+    padding: 20px;
+    gap: 12px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+
+    /* Hide menu by default */
+    display: none;
+  }
+
+  /* Active Open State */
+  .nav-right.active {
+    display: flex;
+    animation: slideDown 0.25s ease-out forwards;
+  }
+
+  .nav-btn {
+    width: 100%;
+    padding: 12px;
+    text-align: center;
+  }
+
+  .user-profile-link {
+    justify-content: center;
+    padding: 10px;
+    background-color: #f8fafc;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
