@@ -28,7 +28,7 @@ function Notes() {
 
       const res = await fetch(`${API}?topic=${topicName}`, {
         headers: {
-          Authorization: token || "",
+           Authorization: `Bearer ${token}`,
         },
       });
 
@@ -62,7 +62,7 @@ function Notes() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: token || "",
+           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           title,
@@ -93,7 +93,7 @@ function Notes() {
       const res = await fetch(`${API}/${id}`, {
         method: "DELETE",
         headers: {
-          Authorization: token || "",
+           Authorization: `Bearer ${token}`,
         },
       });
 
