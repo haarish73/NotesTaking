@@ -2,21 +2,32 @@ import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "../css/Login.css";
 
-const API = "http://localhost:5000/auth/login";
+// ✅ Use BASE URL (clean + reusable)
+const BASE_URL = "https://notestaking-nuya.onrender.com";
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
-    e.preventDefault(); // Prevents page reload on submit
+    e.preventDefault();
     setError("");
 
+    // ✅ basic validation
+    if (!email || !password) {
+      setError("Email and password are required");
+      return;
+    }
+
     try {
-      const res = await fetch(API, {
+      setLoading(true);
+
+      const res = await fetch(`${BASE_URL}/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -26,8 +37,9 @@ function Login() {
 
       const data = await res.json();
 
+      // ✅ backend error
       if (!res.ok) {
-        setError(data.message || "Login failed");
+        setError(data.message || "Invalid credentials");
         return;
       }
 
@@ -35,10 +47,14 @@ function Login() {
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      navigate("/"); // go to home
+      // ✅ redirect
+      navigate("/");
+
     } catch (err) {
-      setError("Server error. Please try again.");
       console.error(err);
+      setError("Server not responding. Check backend.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -54,36 +70,32 @@ function Login() {
           {error && <div className="error-banner">{error}</div>}
 
           <div className="form-group">
-            <label htmlFor="email">Email</label>
+            <label>Email</label>
             <input
-              id="email"
               type="email"
               placeholder="name@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              required
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="password">Password</label>
+            <label>Password</label>
             <input
-              id="password"
               type="password"
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              required
             />
           </div>
 
-          <button type="submit" className="auth-btn">
-            Sign In
+          <button type="submit" className="auth-btn" disabled={loading}>
+            {loading ? "Signing in..." : "Sign In"}
           </button>
         </form>
 
         <div className="auth-footer">
-          Don't have an account? <Link to="/register">Sign up</Link>
+          Don’t have an account? <Link to="/register">Sign up</Link>
         </div>
       </div>
     </div>

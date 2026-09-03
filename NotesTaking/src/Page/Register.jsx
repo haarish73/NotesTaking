@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "../css/Register.css";
 
-const API = "http://localhost:5000/auth/register";
+// ✅ Use BASE URL instead of full endpoint
+const BASE_URL = "https://notestaking-nuya.onrender.com";
 
 function Register() {
   const [username, setUsername] = useState("");
@@ -15,17 +16,18 @@ function Register() {
   const navigate = useNavigate();
 
   const handleRegister = async (e) => {
-    e.preventDefault(); // Prevents full page refresh
+    e.preventDefault();
     setError("");
     setMessage("");
 
+    // ✅ Basic validation
     if (!username || !email || !password) {
       setError("All fields are required");
       return;
     }
 
     try {
-      const res = await fetch(API, {
+      const res = await fetch(`${BASE_URL}/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -39,26 +41,26 @@ function Register() {
 
       const data = await res.json();
 
+      // ✅ Handle backend errors properly
       if (!res.ok) {
         setError(data.message || "Registration failed");
         return;
       }
 
-      setMessage("✅ Registered successfully! Redirecting to login...");
+      // ✅ Success
+      setMessage("✅ Registered successfully! Redirecting...");
 
-      // Clear fields
       setUsername("");
       setEmail("");
       setPassword("");
 
-      // Redirect after 1.5s
       setTimeout(() => {
         navigate("/login");
       }, 1500);
 
     } catch (err) {
       console.error(err);
-      setError("Server error. Please try again later.");
+      setError("Server not responding (check backend / DB)");
     }
   };
 
@@ -75,38 +77,32 @@ function Register() {
           {message && <div className="success-banner">{message}</div>}
 
           <div className="form-group">
-            <label htmlFor="username">Username</label>
+            <label>Username</label>
             <input
-              id="username"
               type="text"
               placeholder="e.g. johndoe"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              required
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="email">Email Address</label>
+            <label>Email</label>
             <input
-              id="email"
               type="email"
               placeholder="name@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              required
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="password">Password</label>
+            <label>Password</label>
             <input
-              id="password"
               type="password"
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              required
             />
           </div>
 
