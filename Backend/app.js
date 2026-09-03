@@ -13,7 +13,7 @@ app.use(express.json());
 main().catch(err => console.log(err));
 
 async function main() {
-  await mongoose.connect(process.env.MONGO_URI);
+  await mongoose.connect(process.env.MONGODB_URI);
 }
 // Routes
 app.use("/notes", require("./routes/notes"));
