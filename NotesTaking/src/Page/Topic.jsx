@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "../css/Topic.css";
 import Swal from "sweetalert2";
 
-const API = "http://localhost:5000/topic";
+const API = "https://notestaking-nuya.onrender.com/topic";
 
 function Topics() {
   const navigate = useNavigate();
@@ -20,7 +20,7 @@ function Topics() {
 
       const res = await fetch(API, {
         headers: {
-          Authorization: token,
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -54,18 +54,21 @@ const handleAddTopic = async (e) => {
       color: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
     };
 
-    const res = await fetch(API, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: token,
-      },
-      body: JSON.stringify(newTopicObj),
-    });
+const res = await fetch(API, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`, // ✅ MUST
+  },
+  body: JSON.stringify(newTopicObj),
+});
 
-    if (!res.ok) {
-      throw new Error("Failed to add topic");
-    }
+const data = await res.json();
+console.log("RESPONSE:", data); // 👈 VERY IMPORTANT
+
+if (!res.ok) {
+  throw new Error(data.message || JSON.stringify(data));
+}
 
     // ✅ SUCCESS ALERT
     Swal.fire({

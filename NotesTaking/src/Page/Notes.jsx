@@ -2,7 +2,13 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "../css/Notes.css";
 
-const API = "http://localhost:5000/notes";
+// ✅ Dynamic BASE URL (local + production)
+const BASE_URL =
+  window.location.hostname === "localhost"
+    ? "http://localhost:5000"
+    : "https://notestaking-nuya.onrender.com";
+
+const API = `${BASE_URL}/notes`;
 
 function Notes() {
   const { topicName } = useParams();
@@ -13,64 +19,96 @@ function Notes() {
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(true);
 
+  // ✅ Load Notes
   const loadNotes = async () => {
     const token = localStorage.getItem("token");
+
     try {
       setLoading(true);
+
       const res = await fetch(`${API}?topic=${topicName}`, {
         headers: {
           Authorization: token || "",
         },
       });
+
       const data = await res.json();
+
+      if (!res.ok) {
+        console.error("Error:", data);
+        setNotes([]);
+        return;
+      }
 
       setNotes(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.error("Failed to load notes:", err);
+      console.error("❌ Failed to load notes:", err);
       setNotes([]);
     } finally {
       setLoading(false);
     }
   };
 
+  // ✅ Add Note
   const addNote = async (e) => {
-    e.preventDefault(); // Prevents page refresh
+    e.preventDefault();
+
     const token = localStorage.getItem("token");
+
     if (!title.trim() || !content.trim()) return;
 
     try {
-      await fetch(API, {
+      const res = await fetch(API, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: token || "",
         },
-        body: JSON.stringify({ title, content, topic: topicName }),
+        body: JSON.stringify({
+          title,
+          content,
+          topic: topicName,
+        }),
       });
+
+      if (!res.ok) {
+        const data = await res.json();
+        console.error("Add error:", data);
+        return;
+      }
 
       setTitle("");
       setContent("");
       loadNotes();
     } catch (err) {
-      console.error("Failed to add note:", err);
+      console.error("❌ Failed to add note:", err);
     }
   };
 
+  // ✅ Delete Note
   const deleteNote = async (id) => {
     const token = localStorage.getItem("token");
+
     try {
-      await fetch(`${API}/${id}`, {
+      const res = await fetch(`${API}/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: token || "",
         },
       });
+
+      if (!res.ok) {
+        console.error("Delete failed");
+        return;
+      }
+
       loadNotes();
     } catch (err) {
-      console.error("Failed to delete note:", err);
+      console.error("❌ Failed to delete note:", err);
     }
   };
 
+  // ✅ Load when topic changes
   useEffect(() => {
     loadNotes();
   }, [topicName]);
@@ -85,9 +123,10 @@ function Notes() {
         <h1>{topicName} Notes</h1>
       </div>
 
-      {/* Add New Note Form */}
+      {/* Add Note */}
       <form className="note-form-card" onSubmit={addNote}>
         <h2>Add New Note</h2>
+
         <input
           className="note-input"
           placeholder="Title / Question"
@@ -95,6 +134,7 @@ function Notes() {
           onChange={(e) => setTitle(e.target.value)}
           required
         />
+
         <textarea
           className="note-textarea"
           placeholder="Content / Answer"
@@ -102,6 +142,7 @@ function Notes() {
           onChange={(e) => setContent(e.target.value)}
           required
         />
+
         <button type="submit" className="add-note-btn">
           + Add Note
         </button>
@@ -122,6 +163,7 @@ function Notes() {
             <div key={note._id || note.id} className="note-card">
               <div className="note-card-header">
                 <h3 className="note-card-title">{note.title}</h3>
+
                 <button
                   className="delete-btn"
                   onClick={() => deleteNote(note._id || note.id)}
@@ -129,6 +171,7 @@ function Notes() {
                   🗑️ Delete
                 </button>
               </div>
+
               <p className="note-card-content">{note.content}</p>
             </div>
           ))
