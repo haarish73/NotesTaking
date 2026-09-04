@@ -3,10 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import "../css/Notes.css";
 
 // ✅ Dynamic BASE URL (local + production)
-const BASE_URL =
-  window.location.hostname === "localhost"
-    ? "http://localhost:5000"
-    : "https://notestaking-nuya.onrender.com";
+const BASE_URL ="https://notestaking-nuya.onrender.com";
 
 const API = `${BASE_URL}/notes`;
 
