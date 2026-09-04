@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "../css/Login.css";
+
 
 // ✅ Use BASE URL (clean + reusable)
 const BASE_URL = "https://notestaking-nuya.onrender.com";
@@ -13,6 +14,14 @@ function Login() {
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
+    // ✅ ADD HERE (top level inside component)
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    if (token && token !== "null") {
+      navigate("/");
+    }
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();

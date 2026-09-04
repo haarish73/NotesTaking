@@ -9,19 +9,47 @@ import Login from "./Page/Login.jsx"
 import Register from './Page/Register.jsx';
 import Profile from "./Page/Profile.jsx"
 
+import ProtectedRoute from "./component/ProtectedRoute.jsx"
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
-    <Navbar/>
+      <Navbar/>
       <Routes>
-        {/* Home */}
-        <Route path="/" element={<Topics />} />
 
-        <Route path="/topics/:topicName" element={<Notes />} />
+        {/* ✅ Protected Routes */}
+        <Route 
+          path="/" 
+          element={
+            <ProtectedRoute>
+              <Topics />
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/topics/:topicName" 
+          element={
+            <ProtectedRoute>
+              <Notes />
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/profile" 
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* ✅ Public Routes */}
         <Route path='/login' element={<Login />} />
         <Route path='/register' element={<Register />} />
-        <Route path='/profile' element={<Profile />} />
+
       </Routes>
     </BrowserRouter>
-  </StrictMode>,
+  </StrictMode>
 )
