@@ -2,9 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "../css/Notes.css";
 
-// ✅ Dynamic BASE URL (local + production)
-const BASE_URL ="https://notestaking-nuya.onrender.com";
-
+const BASE_URL = "https://notestaking-nuya.onrender.com";
 const API = `${BASE_URL}/notes`;
 
 function Notes() {
@@ -15,6 +13,7 @@ function Notes() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
 
   // ✅ Load Notes
   const loadNotes = async () => {
@@ -25,7 +24,7 @@ function Notes() {
 
       const res = await fetch(`${API}?topic=${topicName}`, {
         headers: {
-           Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -59,7 +58,7 @@ function Notes() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-           Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           title,
@@ -76,6 +75,7 @@ function Notes() {
 
       setTitle("");
       setContent("");
+      setShowModal(false);
       loadNotes();
     } catch (err) {
       console.error("❌ Failed to add note:", err);
@@ -90,7 +90,7 @@ function Notes() {
       const res = await fetch(`${API}/${id}`, {
         method: "DELETE",
         headers: {
-           Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -111,69 +111,135 @@ function Notes() {
   }, [topicName]);
 
   return (
-    <div className="notes-container">
-      {/* Header */}
-      <div className="notes-header">
+    <div className="notes-page">
+      {/* Top Navigation */}
+      <div className="top-nav">
         <button className="back-btn" onClick={() => navigate("/")}>
           ← Back to Topics
         </button>
-        <h1>{topicName} Notes</h1>
+        <div className="quote-tag">"Small notes make big progress."</div>
       </div>
 
-      {/* Add Note */}
-      <form className="note-form-card" onSubmit={addNote}>
-        <h2>Add New Note</h2>
+      {/* Header Bar */}
+      <div className="notes-header">
+        <div className="header-left">
+          <div className="topic-icon">☕</div>
+          <div>
+            <h1>{topicName} Notes</h1>
+            <p className="subtitle">
+              Capture your ideas, questions and learnings about {topicName}.
+            </p>
+          </div>
+        </div>
 
-        <input
-          className="note-input"
-          placeholder="Title / Question"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          required
-        />
+        <div className="header-right">
+          <div className="search-box">
+            <span>🔍</span>
+            <input type="text" placeholder="Search notes..." disabled />
+          </div>
+          <select className="sort-dropdown" disabled>
+            <option>⇅ Newest</option>
+          </select>
+        </div>
+      </div>
 
-        <textarea
-          className="note-textarea"
-          placeholder="Content / Answer"
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          required
-        />
-
-        <button type="submit" className="add-note-btn">
-          + Add Note
-        </button>
-      </form>
-
-      {/* Notes List */}
+      {/* Main Grid Content */}
       <div className="notes-grid">
+        {/* Create Card Button */}
+        <div className="add-card-placeholder" onClick={() => setShowModal(true)}>
+          <div className="plus-circle">+</div>
+          <h3>Add New Note</h3>
+          <p>Write a new note about {topicName} and keep learning!</p>
+        </div>
+
+        {/* Loading State */}
         {loading ? (
-          <div className="empty-notes-card">
+          <div className="status-card">
             <p>Loading notes...</p>
           </div>
         ) : notes.length === 0 ? (
+          /* Empty State */
           <div className="empty-notes-card">
-            <p>No notes found for "{topicName}". Create one above! 📝</p>
+            <div className="empty-icon">📖</div>
+            <h3>No notes found for "{topicName}"</h3>
+            <p>Looks like you haven't added any notes yet.</p>
+            <button className="primary-btn" onClick={() => setShowModal(true)}>
+              + Add Your First Note
+            </button>
           </div>
         ) : (
+          /* Notes Mapping */
           notes.map((note) => (
             <div key={note._id || note.id} className="note-card">
               <div className="note-card-header">
-                <h3 className="note-card-title">{note.title}</h3>
-
+                <div className="card-icon">📄</div>
                 <button
-                  className="delete-btn"
+                  className="delete-icon-btn"
+                  title="Delete Note"
                   onClick={() => deleteNote(note._id || note.id)}
                 >
-                  🗑️ Delete
+                  🗑️
                 </button>
               </div>
 
+              <h3 className="note-card-title">{note.title}</h3>
               <p className="note-card-content">{note.content}</p>
+
+              <div className="note-card-footer">
+                <span className="note-date">📅 Recently Added</span>
+                <span className="note-tag">{topicName}</span>
+              </div>
             </div>
           ))
         )}
       </div>
+
+      {/* Floating Action Button */}
+      <button className="fab-btn" onClick={() => setShowModal(true)}>
+        +
+      </button>
+
+      {/* Add Note Modal Dialog */}
+      {showModal && (
+        <div className="modal-overlay">
+          <div className="modal-card">
+            <div className="modal-header">
+              <h2>Add New Note</h2>
+              <button className="close-btn" onClick={() => setShowModal(false)}>
+                ✕
+              </button>
+            </div>
+            <form onSubmit={addNote}>
+              <input
+                className="note-input"
+                placeholder="Title / Question"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+              />
+              <textarea
+                className="note-textarea"
+                placeholder="Content / Answer"
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                required
+              />
+              <div className="modal-actions">
+                <button
+                  type="button"
+                  className="cancel-btn"
+                  onClick={() => setShowModal(false)}
+                >
+                  Cancel
+                </button>
+                <button type="submit" className="primary-btn">
+                  + Add Note
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
