@@ -38,122 +38,214 @@ function Topics() {
   }, []);
 
   // ✅ Add topic (save to MongoDB)
-const handleAddTopic = async (e) => {
-  e.preventDefault();
-  if (!newTopicName.trim()) return;
+  const handleAddTopic = async (e) => {
+    e.preventDefault();
+    if (!newTopicName.trim()) return;
 
-  try {
-    const token = localStorage.getItem("token");
+    try {
+      const token = localStorage.getItem("token");
 
-    const slugKey = newTopicName.toLowerCase().replace(/\s+/g, "-");
+      const slugKey = newTopicName.toLowerCase().replace(/\s+/g, "-");
 
-    const newTopicObj = {
-      name: slugKey,
-      label: newTopicName,
-      icon: newTopicIcon || "📁",
-      color: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
-    };
+      const newTopicObj = {
+        name: slugKey,
+        label: newTopicName,
+        icon: newTopicIcon || "📁",
+        color: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+      };
 
-const res = await fetch(API, {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`, // ✅ MUST
-  },
-  body: JSON.stringify(newTopicObj),
-});
+      const res = await fetch(API, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(newTopicObj),
+      });
 
-const data = await res.json();
-console.log("RESPONSE:", data); // 👈 VERY IMPORTANT
+      const data = await res.json();
+      console.log("RESPONSE:", data);
 
-if (!res.ok) {
-  throw new Error(data.message || JSON.stringify(data));
-}
+      if (!res.ok) {
+        throw new Error(data.message || JSON.stringify(data));
+      }
 
-    // ✅ SUCCESS ALERT
-    Swal.fire({
-      icon: "success",
-      title: "Topic Added!",
-      text: `${newTopicName} created successfully 🎉`,
-      timer: 1500,
-      showConfirmButton: false,
-    });
+      // ✅ SUCCESS ALERT
+      Swal.fire({
+        icon: "success",
+        title: "Topic Added!",
+        text: `${newTopicName} created successfully 🎉`,
+        timer: 1500,
+        showConfirmButton: false,
+      });
 
-    loadTopics();
+      loadTopics();
 
-    setNewTopicName("");
-    setNewTopicIcon("📖");
-    setShowAddForm(false);
+      setNewTopicName("");
+      setNewTopicIcon("📖");
+      setShowAddForm(false);
+    } catch (err) {
+      console.error(err);
 
-  } catch (err) {
-    console.error(err);
+      // ❌ ERROR ALERT
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "Something went wrong!",
+      });
+    }
+  };
 
-    // ❌ ERROR ALERT
-    Swal.fire({
-      icon: "error",
-      title: "Oops...",
-      text: "Something went wrong!",
-    });
-  }
-};
   return (
-    <div className="container">
-      <header className="home-header">
-        <h1>📚 My Notes</h1>
-        <p className="subtitle">Pick a topic to view or add your notes</p>
-
-        <button
-          className="add-topic-btn"
-          onClick={() => setShowAddForm(!showAddForm)}
-        >
-          {showAddForm ? "Cancel" : "+ Add New Topic"}
-        </button>
-      </header>
-
-      {/* ✅ Add Topic Form */}
-      {showAddForm && (
-        <form onSubmit={handleAddTopic} className="add-topic-form">
-          <input
-            type="text"
-            placeholder="Topic Name (e.g. Python)"
-            value={newTopicName}
-            onChange={(e) => setNewTopicName(e.target.value)}
-            required
-          />
-          <input
-            type="text"
-            placeholder="Emoji Icon (e.g. 🐍)"
-            value={newTopicIcon}
-            onChange={(e) => setNewTopicIcon(e.target.value)}
-            maxLength={2}
-          />
-          <button type="submit">Create Topic</button>
-        </form>
-      )}
-
-      {/* ✅ Topics List */}
-      <div className="topics-grid">
-        {topics.length === 0 ? (
-          <p>No topics found</p>
-        ) : (
-          topics.map((topic) => (
-            <div
-              key={topic._id || topic.name}
-              className="book-card"
-              style={{ "--accent": topic.color }}
-              onClick={() => navigate(`/topics/${topic.name}`)}
-            >
-              <span className="book-icon">{topic.icon}</span>
-              <h2>{topic.label}</h2>
-              <span className="book-arrow">→</span>
+    <div className="topics-page-wrapper">
+      <main className="topics-container">
+        {/* Header Section */}
+        <div className="topics-header">
+          <div className="header-title-box">
+            <div className="main-logo-icon">📚</div>
+            <div>
+              <h1>My Notes</h1>
+              <p className="subtitle">Pick a topic to view or add your notes</p>
             </div>
-          ))
-        )}
-      </div>
+          </div>
+          <div className="quote-badge">
+            "Organize Today <br /> Learn Tomorrow"
+          </div>
+        </div>
 
-      <footer className="home-footer">
-        <p>Organize your learning, one topic at a time ✨</p>
-      </footer>
+        {/* Action Controls */}
+        <div className="action-bar">
+          <button
+            className="primary-action-btn"
+            onClick={() => setShowAddForm(true)}
+          >
+            + Add New Topic
+          </button>
+
+          <div className="filter-controls">
+            <div className="search-input-wrapper">
+              <span>🔍</span>
+              <input type="text" placeholder="Search topics..." disabled />
+            </div>
+            <select className="filter-dropdown" disabled>
+              <option>▦ All Topics</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Display Grid or Empty State Area */}
+        <div className="display-section">
+          {topics.length === 0 ? (
+            <div className="empty-box">
+              <div className="box-illustration">📦</div>
+              <h2>No topics found</h2>
+              <p>
+                You haven't added any topics yet. Create your first topic to
+                start organizing your notes!
+              </p>
+              <button
+                className="primary-action-btn"
+                onClick={() => setShowAddForm(true)}
+              >
+                + Add New Topic
+              </button>
+            </div>
+          ) : (
+            <div className="topics-grid">
+              {topics.map((topic) => (
+                <div
+                  key={topic._id || topic.name}
+                  className="topic-card"
+                  onClick={() => navigate(`/topics/${topic.name}`)}
+                >
+                  <div
+                    className="card-icon-wrapper"
+                    style={{ backgroundColor: topic.color + "22" }}
+                  >
+                    <span className="topic-icon">{topic.icon}</span>
+                  </div>
+                  <div className="card-info">
+                    <h2>{topic.label}</h2>
+                    <span className="card-arrow">→</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Informational Feature Cards */}
+        <div className="info-cards-grid">
+          <div className="info-card purple-card">
+            <span className="info-icon">📖</span>
+            <div>
+              <h3>Organize Easily</h3>
+              <p>Create topics and keep your notes structured.</p>
+            </div>
+          </div>
+          <div className="info-card blue-card">
+            <span className="info-icon">⚡</span>
+            <div>
+              <h3>Boost Your Learning</h3>
+              <p>Keep all your important notes in one place.</p>
+            </div>
+          </div>
+          <div className="info-card green-card">
+            <span className="info-icon">🎯</span>
+            <div>
+              <h3>Achieve Your Goals</h3>
+              <p>Stay consistent and make progress every day.</p>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      {/* Add Topic Modal */}
+      {showAddForm && (
+        <div className="modal-backdrop">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h2>Add New Topic</h2>
+              <button
+                className="modal-close-btn"
+                onClick={() => setShowAddForm(false)}
+              >
+                ✕
+              </button>
+            </div>
+            <form onSubmit={handleAddTopic} className="modal-form">
+              <label>Topic Name</label>
+              <input
+                type="text"
+                placeholder="e.g. Python, React, Java"
+                value={newTopicName}
+                onChange={(e) => setNewTopicName(e.target.value)}
+                required
+              />
+              <label>Emoji Icon</label>
+              <input
+                type="text"
+                placeholder="e.g. 🐍, ⚛️, ☕"
+                value={newTopicIcon}
+                onChange={(e) => setNewTopicIcon(e.target.value)}
+                maxLength={2}
+              />
+              <div className="modal-actions">
+                <button
+                  type="button"
+                  className="cancel-btn"
+                  onClick={() => setShowAddForm(false)}
+                >
+                  Cancel
+                </button>
+                <button type="submit" className="primary-action-btn">
+                  Create Topic
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
