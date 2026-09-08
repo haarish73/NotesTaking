@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "../css/Notes.css";
+import Swal from "sweetalert2";
 
 const BASE_URL = "https://notestaking-nuya.onrender.com";
 const API = `${BASE_URL}/notes`;
@@ -15,9 +16,20 @@ function Notes() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
 
-  // ✅ Load Notes
+  // ✅ Load Notes with Swal cold-start handling
   const loadNotes = async () => {
     const token = localStorage.getItem("token");
+
+    Swal.fire({
+      title: "Fetching Notes...",
+title: "Almost there...",
+html: "Just connecting to the server. Thanks for your patience!",
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
 
     try {
       setLoading(true);
@@ -33,13 +45,16 @@ function Notes() {
       if (!res.ok) {
         console.error("Error:", data);
         setNotes([]);
+        Swal.close();
         return;
       }
 
       setNotes(Array.isArray(data) ? data : []);
+      Swal.close();
     } catch (err) {
       console.error("❌ Failed to load notes:", err);
       setNotes([]);
+      Swal.close();
     } finally {
       setLoading(false);
     }
@@ -48,10 +63,19 @@ function Notes() {
   // ✅ Add Note
   const addNote = async (e) => {
     e.preventDefault();
-
     const token = localStorage.getItem("token");
 
     if (!title.trim() || !content.trim()) return;
+
+    Swal.fire({
+      title: "Saving Note...",
+      html: "Connecting to server...",
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
 
     try {
       const res = await fetch(API, {
@@ -69,9 +93,21 @@ function Notes() {
 
       if (!res.ok) {
         const data = await res.json();
-        console.error("Add error:", data);
+        Swal.fire({
+          icon: "error",
+          title: "Failed to Add",
+          text: data.message || "Could not save your note.",
+        });
         return;
       }
+
+      Swal.fire({
+        icon: "success",
+        title: "Note Created!",
+        text: "Your note was added successfully.",
+        timer: 1500,
+        showConfirmButton: false,
+      });
 
       setTitle("");
       setContent("");
@@ -79,12 +115,38 @@ function Notes() {
       loadNotes();
     } catch (err) {
       console.error("❌ Failed to add note:", err);
+      Swal.fire({
+        icon: "error",
+        title: "Server Error",
+        text: "Could not connect to the server.",
+      });
     }
   };
 
-  // ✅ Delete Note
+  // ✅ Delete Note with Confirmation
   const deleteNote = async (id) => {
     const token = localStorage.getItem("token");
+
+    const result = await Swal.fire({
+      title: "Delete this note?",
+      text: "This action cannot be undone.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+    });
+
+    if (!result.isConfirmed) return;
+
+    Swal.fire({
+      title: "Deleting...",
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
 
     try {
       const res = await fetch(`${API}/${id}`, {
@@ -95,17 +157,33 @@ function Notes() {
       });
 
       if (!res.ok) {
-        console.error("Delete failed");
+        Swal.fire({
+          icon: "error",
+          title: "Delete Failed",
+          text: "Could not delete the note.",
+        });
         return;
       }
+
+      Swal.fire({
+        icon: "success",
+        title: "Deleted!",
+        text: "Note has been removed.",
+        timer: 1500,
+        showConfirmButton: false,
+      });
 
       loadNotes();
     } catch (err) {
       console.error("❌ Failed to delete note:", err);
+      Swal.fire({
+        icon: "error",
+        title: "Server Error",
+        text: "Could not complete request.",
+      });
     }
   };
 
-  // ✅ Load when topic changes
   useEffect(() => {
     loadNotes();
   }, [topicName]);

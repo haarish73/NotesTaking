@@ -1,16 +1,14 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import Swal from "sweetalert2";
 import "../css/Register.css";
 
-// ✅ Use BASE URL instead of full endpoint
 const BASE_URL = "https://notestaking-nuya.onrender.com";
 
 function Register() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
-  const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
   const navigate = useNavigate();
@@ -18,13 +16,22 @@ function Register() {
   const handleRegister = async (e) => {
     e.preventDefault();
     setError("");
-    setMessage("");
 
-    // ✅ Basic validation
     if (!username || !email || !password) {
       setError("All fields are required");
       return;
     }
+
+    // Display SweetAlert2 loading modal for Render spin-up delay
+    Swal.fire({
+      title: "Almost there...",
+html: "Just connecting to the server. Thanks for your patience!",
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
 
     try {
       const res = await fetch(`${BASE_URL}/auth/register`, {
@@ -41,25 +48,28 @@ function Register() {
 
       const data = await res.json();
 
-      // ✅ Handle backend errors properly
       if (!res.ok) {
+        Swal.close();
         setError(data.message || "Registration failed");
         return;
       }
 
-      // ✅ Success
-      setMessage("✅ Registered successfully! Redirecting...");
-
-      setUsername("");
-      setEmail("");
-      setPassword("");
-
-      setTimeout(() => {
+      // Show success alert before navigating
+      Swal.fire({
+        icon: "success",
+        title: "Registered Successfully!",
+        text: "Redirecting to login...",
+        timer: 1500,
+        showConfirmButton: false,
+      }).then(() => {
+        setUsername("");
+        setEmail("");
+        setPassword("");
         navigate("/login");
-      }, 1500);
-
+      });
     } catch (err) {
       console.error(err);
+      Swal.close();
       setError("Server not responding (check backend / DB)");
     }
   };
@@ -74,7 +84,6 @@ function Register() {
 
         <form onSubmit={handleRegister} className="auth-form">
           {error && <div className="error-banner">{error}</div>}
-          {message && <div className="success-banner">{message}</div>}
 
           <div className="form-group">
             <label>Username</label>

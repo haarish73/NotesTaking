@@ -1,41 +1,45 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import Swal from "sweetalert2";
 import "../css/Login.css";
 
-
-// ✅ Use BASE URL (clean + reusable)
 const BASE_URL = "https://notestaking-nuya.onrender.com";
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
-    // ✅ ADD HERE (top level inside component)
+
   useEffect(() => {
     const token = localStorage.getItem("token");
-
     if (token && token !== "null") {
       navigate("/");
     }
-  }, []);
+  }, [navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
 
-    // ✅ basic validation
     if (!email || !password) {
       setError("Email and password are required");
       return;
     }
 
-    try {
-      setLoading(true);
+    // Display SweetAlert2 loading modal for Render spin-up delay
+    Swal.fire({
+     title: "Almost there...",
+html: "Just connecting to the server. Thanks for your patience!",
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
 
+    try {
       const res = await fetch(`${BASE_URL}/auth/login`, {
         method: "POST",
         headers: {
@@ -46,24 +50,30 @@ function Login() {
 
       const data = await res.json();
 
-      // ✅ backend error
       if (!res.ok) {
+        Swal.close();
         setError(data.message || "Invalid credentials");
         return;
       }
 
-      // ✅ store token + user
+      // Store tokens/user data
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      // ✅ redirect
-      navigate("/");
-
+      // Show success alert before navigating
+      Swal.fire({
+        icon: "success",
+        title: "Login Successful!",
+        text: "Redirecting to dashboard...",
+        timer: 1500,
+        showConfirmButton: false,
+      }).then(() => {
+        navigate("/");
+      });
     } catch (err) {
       console.error(err);
-      setError("Server not responding. Check backend.");
-    } finally {
-      setLoading(false);
+      Swal.close();
+      setError("Server not responding. Check backend status.");
     }
   };
 
@@ -98,8 +108,8 @@ function Login() {
             />
           </div>
 
-          <button type="submit" className="auth-btn" disabled={loading}>
-            {loading ? "Signing in..." : "Sign In"}
+          <button type="submit" className="auth-btn">
+            Sign In
           </button>
         </form>
 

@@ -13,8 +13,18 @@ function Topics() {
   const [newTopicIcon, setNewTopicIcon] = useState("📖");
   const [showAddForm, setShowAddForm] = useState(false);
 
-  // ✅ Load topics from backend
+  // ✅ Load topics with Render cold-start indicator
   const loadTopics = async () => {
+    Swal.fire({
+      title: "Almost there...",
+html: "Just connecting to the server. Thanks for your patience!",
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
+
     try {
       const token = localStorage.getItem("token");
 
@@ -26,25 +36,35 @@ function Topics() {
 
       const data = await res.json();
       setTopics(Array.isArray(data) ? data : []);
+      Swal.close();
     } catch (err) {
       console.error(err);
       setTopics([]);
+      Swal.close();
     }
   };
 
-  // ✅ Run on page load
   useEffect(() => {
     loadTopics();
   }, []);
 
-  // ✅ Add topic (save to MongoDB)
+  // ✅ Add topic with loader and feedback modal
   const handleAddTopic = async (e) => {
     e.preventDefault();
     if (!newTopicName.trim()) return;
 
+    Swal.fire({
+      title: "Saving Topic...",
+      html: "Connecting to server...",
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
+
     try {
       const token = localStorage.getItem("token");
-
       const slugKey = newTopicName.toLowerCase().replace(/\s+/g, "-");
 
       const newTopicObj = {
@@ -64,7 +84,6 @@ function Topics() {
       });
 
       const data = await res.json();
-      console.log("RESPONSE:", data);
 
       if (!res.ok) {
         throw new Error(data.message || JSON.stringify(data));
@@ -79,11 +98,10 @@ function Topics() {
         showConfirmButton: false,
       });
 
-      loadTopics();
-
       setNewTopicName("");
       setNewTopicIcon("📖");
       setShowAddForm(false);
+      loadTopics();
     } catch (err) {
       console.error(err);
 
@@ -91,7 +109,7 @@ function Topics() {
       Swal.fire({
         icon: "error",
         title: "Oops...",
-        text: "Something went wrong!",
+        text: err.message || "Something went wrong while creating the topic!",
       });
     }
   };
