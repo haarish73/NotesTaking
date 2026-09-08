@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../css/Navbar.css";
-
+import Swal from "sweetalert2"; 
 function Navbar() {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -20,11 +20,33 @@ function Navbar() {
     navigate(path);
   };
 
-  const logout = () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
-    setIsMenuOpen(false);
-    navigate("/login");
+  const handleLogout = () => {
+    Swal.fire({
+      title: "Logout?",
+      text: "Are you sure you want to sign out?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, logout!",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Clear auth data
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+
+        // Show logout alert before navigating
+        Swal.fire({
+          icon: "success",
+          title: "Logged Out!",
+          text: "You have been successfully logged out.",
+          timer: 1500,
+          showConfirmButton: false,
+        }).then(() => {
+          navigate("/login");
+        });
+      }
+    });
   };
 
   return (
@@ -70,7 +92,7 @@ function Navbar() {
             </span>
             <button 
               className="nav-btn nav-btn-logout" 
-              onClick={logout}
+              onClick={handleLogout}
             >
               Logout
             </button>

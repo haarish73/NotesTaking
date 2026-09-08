@@ -6,7 +6,7 @@ const cors = require("cors");
 const notesRoutes = require("./routes/notes")
 const authRoutes = require("./routes/auth")
 const topicRoutes = require("./routes/topics");
-
+const searchRoutes = require("./routes/search")
 
 const app = express();
 
@@ -27,5 +27,7 @@ async function main() {
 app.use("/notes", require("./routes/notes"));
 app.use("/auth", authRoutes)
 app.use("/topic", topicRoutes)
+app.use("/search", searchRoutes)
+
 
 app.listen(5000, () => console.log("Server running on port 5000"));

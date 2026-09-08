@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import "../css/Profile.css";
+import Swal from "sweetalert2"; // Fixed casing
 
 function Profile() {
   const navigate = useNavigate();
@@ -8,8 +9,32 @@ function Profile() {
   const user = userData ? JSON.parse(userData) : null;
 
   const handleLogout = () => {
-    localStorage.removeItem("user");
-    navigate("/login");
+    Swal.fire({
+      title: "Logout?",
+      text: "Are you sure you want to sign out?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, logout!",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Clear auth data
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+
+        // Show logout alert before navigating
+        Swal.fire({
+          icon: "success",
+          title: "Logged Out!",
+          text: "You have been successfully logged out.",
+          timer: 1500,
+          showConfirmButton: false,
+        }).then(() => {
+          navigate("/login");
+        });
+      }
+    });
   };
 
   if (!user) {
