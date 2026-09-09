@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "../css/Notes.css";
 import Swal from "sweetalert2";
@@ -15,15 +15,77 @@ function Notes() {
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [selectedColor, setSelectedColor] = useState("#2563eb");
 
-  // ✅ Load Notes with Swal cold-start handling
+  // Search & Filter State
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState("newest");
+
+  const textareaRef = useRef(null);
+
+  // Helper function to format raw markdown (**bold**, *italic*) into HTML
+  const parseFormattedContent = (rawText) => {
+    if (!rawText) return "";
+    let html = rawText;
+    // Replace **bold** with <strong>
+    html = html.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+    // Replace *italic* with <em>
+    html = html.replace(/\*(.*?)\*/g, "<em>$1</em>");
+    return html;
+  };
+
+  // Wrap selected text inside textarea
+  const applyFormatting = (prefix, suffix = "") => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = content.substring(start, end) || "text";
+
+    const updatedText =
+      content.substring(0, start) +
+      prefix +
+      selectedText +
+      suffix +
+      content.substring(end);
+
+    setContent(updatedText);
+
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(
+        start + prefix.length,
+        end + prefix.length
+      );
+    }, 0);
+  };
+
+  const handleBold = () => applyFormatting("**", "**");
+  const handleItalic = () => applyFormatting("*", "*");
+  const handleColorChange = (e) => {
+    const color = e.target.value;
+    setSelectedColor(color);
+    applyFormatting(`<span style="color:${color}">`, "</span>");
+  };
+
+  // ✅ Format creation/current date
+  const formatDate = (dateString) => {
+    const date = dateString ? new Date(dateString) : new Date();
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  // ✅ Load Notes
   const loadNotes = async () => {
     const token = localStorage.getItem("token");
 
     Swal.fire({
-      title: "Fetching Notes...",
-title: "Almost there...",
-html: "Just connecting to the server. Thanks for your patience!",
+      title: "Almost there...",
+      html: "Just connecting to the server. Thanks for your patience!",
       allowOutsideClick: false,
       allowEscapeKey: false,
       didOpen: () => {
@@ -123,7 +185,7 @@ html: "Just connecting to the server. Thanks for your patience!",
     }
   };
 
-  // ✅ Delete Note with Confirmation
+  // ✅ Delete Note
   const deleteNote = async (id) => {
     const token = localStorage.getItem("token");
 
@@ -261,10 +323,20 @@ html: "Just connecting to the server. Thanks for your patience!",
               </div>
 
               <h3 className="note-card-title">{note.title}</h3>
-              <p className="note-card-content">{note.content}</p>
+
+              {/* Render HTML content properly */}
+              <div
+                className="note-card-content"
+                dangerouslySetInnerHTML={{
+                  __html: parseFormattedContent(note.content),
+                }}
+              />
 
               <div className="note-card-footer">
-                <span className="note-date">📅 Recently Added</span>
+                {/* Display Current or Created Date */}
+                <span className="note-date">
+                  📅 {formatDate(note.createdAt || note.date)}
+                </span>
                 <span className="note-tag">{topicName}</span>
               </div>
             </div>
@@ -295,9 +367,39 @@ html: "Just connecting to the server. Thanks for your patience!",
                 onChange={(e) => setTitle(e.target.value)}
                 required
               />
+
+              {/* Formatting Toolbar */}
+              <div className="editor-toolbar">
+                <button
+                  type="button"
+                  className="toolbar-btn"
+                  onClick={handleBold}
+                  title="Bold"
+                >
+                  B
+                </button>
+                <button
+                  type="button"
+                  className="toolbar-btn"
+                  onClick={handleItalic}
+                  style={{ fontStyle: "italic" }}
+                  title="Italic"
+                >
+                  I
+                </button>
+                <input
+                  type="color"
+                  className="color-picker"
+                  value={selectedColor}
+                  onChange={handleColorChange}
+                  title="Choose text color"
+                />
+              </div>
+
               <textarea
+                ref={textareaRef}
                 className="note-textarea"
-                placeholder="Content / Answer"
+                placeholder="Content / Answer (Select text to format)"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 required
